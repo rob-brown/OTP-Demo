@@ -74,7 +74,7 @@ Basic process operations:
 * `:one_for_one` (default)
 * `:one_for_all`
 * `:rest_for_one`
-* `:simple_one_for_one`
+* `:simple_one_for_one` (deprecated)
 
 ---
 
@@ -294,7 +294,7 @@ end
 
 Short for "Generic Server"
 
-A generic process that encapsulates behavior *and* state data
+A generic process that encapsulates behavior **and** state data
 
 ---
 
@@ -302,6 +302,8 @@ A generic process that encapsulates behavior *and* state data
 
 * `Task`
 * `Agent`
+
+^ Technically, `Agent` is a `GenServer`. It just has a simplified interface.
 
 ---
 
@@ -317,6 +319,7 @@ A generic process that encapsulates behavior *and* state data
 ## Module
 
 ```elixir
+# A simple function call
 output = Module.fun(input)
 ```
 
@@ -329,8 +332,10 @@ output = Module.fun(input)
   # Do something
 end)
 
+# Wait until done or timeout
 output = Task.yield(task)
 
+# Wait until done or terminate on timeout
 output = Task.await(task)
 ```
 
@@ -339,11 +344,14 @@ output = Task.await(task)
 ## Agent
 
 ```elixir
+# Start process with initial state
 {:ok, pid} = Agent.start_link(fn -> state end)
 
-Agent.update(pid, fn x -> update(x) end)
+# Update state
+Agent.update(pid, fn x -> ... end)
 
-output = Agent.get(pid, fn x -> extract(x) end)
+# Return current state (or some transformation)
+output = Agent.get(pid, fn x -> x end)
 ```
 
 ---
@@ -353,8 +361,10 @@ output = Agent.get(pid, fn x -> extract(x) end)
 ```elixir
 {:ok, pid} = GenServer.start_link(...)
 
+# Send without expecting response
 GenServer.cast(pid, msg)
 
+# Send and wait for response or terminate on timeout
 output = GenServer.call(pid, msg)
 ```
 
