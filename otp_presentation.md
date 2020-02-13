@@ -191,7 +191,7 @@ use GenServer
 Any spec field can be overriden like this:
 
 ```elixir
-use GenServer, restart: transient
+use GenServer, restart: :transient
 ```
 
 ---

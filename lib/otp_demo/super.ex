@@ -5,6 +5,7 @@ defmodule OtpDemo.Super do
   """
 
   defmodule Child do
+    @enforce_keys [:pid, :ref, :spec]
     defstruct [:pid, :ref, :spec]
   end
 
@@ -26,23 +27,24 @@ defmodule OtpDemo.Super do
   def init(children) do
     Process.flag(:trap_exit, true)
 
-    state =
-      children
-      |> Enum.map(&get_spec/1)
-      |> Enum.map(&start_child/1)
-      |> Map.new(&{&1.pid, &1})
-
-    loop(state)
+    children
+    |> Enum.map(&get_spec/1)
+    |> Enum.map(&start_child/1)
+    |> Map.new(&{&1.pid, &1})
+    |> loop()
   end
 
   def loop(state) do
     receive do
       {:DOWN, _ref, _type, pid, _info} ->
+        IO.puts("Supervisor got down")
+
         state
         |> maybe_restart(pid)
         |> loop()
 
       {:EXIT, _from, _reason} ->
+        IO.puts("Supervisor got exit")
         loop(state)
     end
   end
@@ -66,7 +68,8 @@ defmodule OtpDemo.Super do
 
   defp maybe_restart(state, pid) do
     with c = %Child{} <- state[pid],
-         x when x in [:permanent, :transient] <- Map.get(c.spec, :restart, :permanent),
+         x when x in [:permanent, :transient] <-
+           Map.get(c.spec, :restart, :permanent),
          new_child = start_child(c.spec) do
       state
       |> Map.delete(pid)
